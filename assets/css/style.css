@@ -2070,3 +2070,110 @@ body {
         padding: var(--spacing-sm);
     }
 }
+
+/* Innovation Showcase Banner */
+.showcase-banner {
+    padding: 40px 0;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(53, 162, 255, 0.1) 100%);
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    position: relative;
+    overflow: hidden;
+}
+
+.showcase-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.05) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.banner-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.banner-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.banner-badge {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8757 100%);
+    color: var(--text-primary);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.banner-title {
+    color: var(--text-primary);
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.banner-text {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin: 0;
+    max-width: 600px;
+}
+
+.banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+    padding: 12px 24px;
+    border-radius: var(--border-radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all var(--transition-medium);
+    margin-top: 8px;
+}
+
+.banner-cta:hover {
+    background: var(--surface-hover);
+    border-color: rgba(255, 107, 53, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(255, 107, 53, 0.2);
+}
+
+@media (max-width: 768px) {
+    .showcase-banner {
+        padding: 30px 0;
+    }
+    
+    .banner-title {
+        font-size: 22px;
+    }
+    
+    .banner-text {
+        font-size: 14px;
+    }
+}
