@@ -1,0 +1,8 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <rect x="8" y="12" width="16" height="16" rx="2" fill="white"/>
+  <circle cx="16" cy="20" r="3" fill="#333"/>
+  <text x="35" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">Make</text>
+  <rect x="75" y="18" width="4" height="4" fill="white"/>
+  <rect x="82" y="18" width="4" height="4" fill="white"/>
+  <rect x="89" y="18" width="4" height="4" fill="white"/>
+</svg>
