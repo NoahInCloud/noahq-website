@@ -487,6 +487,121 @@
     color: #ff6b35;
 }
 
+/* Hidden Gems Section */
+.hidden-gems {
+    padding: var(--spacing-xl) var(--spacing-md);
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 50%, transparent 100%);
+}
+
+.gems-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.gems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.gem-card {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    transition: all var(--transition-medium);
+    position: relative;
+    overflow: hidden;
+}
+
+.gem-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #00ff00, #00cc00);
+    transform: scaleX(0);
+    transition: transform var(--transition-medium);
+}
+
+.gem-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 255, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 255, 0, 0.1);
+}
+
+.gem-card:hover::before {
+    transform: scaleX(1);
+}
+
+.gem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.gem-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.gem-issue {
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.gem-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--spacing-md);
+}
+
+.gem-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.gem-link {
+    color: #00ff00;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    transition: all var(--transition-medium);
+}
+
+.gem-link:hover {
+    color: #00cc00;
+    transform: translateX(4px);
+}
+
+.gems-footer {
+    text-align: center;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border-subtle);
+}
+
+.gems-footer p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-stats {
