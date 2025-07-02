@@ -1,25 +1,85 @@
-# .github/workflows/claude-review.yml
-name: Claude Code Reviewer
+name: Pages Deploy + Claude Review
 
+###############################################################################
+# EVENTS
+###############################################################################
 on:
+  # ──────────────────────────  Deployment  ──────────────────────────
+  push:
+    branches: [main]         # build & deploy the Jekyll site
+  workflow_dispatch:         # let you trigger a manual deploy
+
+  # ──────────────────────────  Code review  ─────────────────────────
   issue_comment:
-    types: [created]
+    types: [created]         # “@claude …” on an issue or PR
   pull_request_review_comment:
-    types: [created]
+    types: [created]         # “@claude …” on a line-level comment
 
+###############################################################################
+# DEFAULT PERMISSIONS
+# These are the maximum scopes any job sees unless you elevate them in the job.
+###############################################################################
 permissions:
-  contents: read          # Claude reads code
-  pull-requests: write    # add PR reviews/comments
-  issues: write           # open/label/close issues
+  contents: read             # read code (needed by both jobs)
+  pages: write               # allow deploy job to publish the site
+  id-token: write            # allow deploy job to authenticate to Pages
+  pull-requests: write       # let Claude add PR comments
+  issues: write              # let Claude open / label / close issues
 
+###############################################################################
+# BUILD & DEPLOY JEKYLL SITE
+###############################################################################
 jobs:
-  review:
-    if: contains(github.event.comment.body, '@claude')
+
+  build-and-deploy:
+    # Only run for push / dispatch events
+    if: github.event_name != 'issue_comment' && github.event_name != 'pull_request_review_comment'
+
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build site with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        env:
+          # surfacing the final URL in the job summary
+          PAGES_DEPLOY_URL: ${{ steps.deployment.outputs.page_url }}
+
+###############################################################################
+# CLAUDE CODE REVIEWER
+###############################################################################
+  claude-review:
+    # Only run when someone mentions @claude in an issue/PR comment
+    if: |
+      (github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment') &&
+      contains(github.event.comment.body, '@claude')
+
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: anthropics/claude-code-action@v0      # or @v0.0.27 for a fixed tag
+      - name: Run Claude Code Action
+        uses: anthropics/claude-code-action@v0          # pin to stable rolling tag
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} # from the Claude GitHub App
+          github_token: ${{ secrets.GITHUB_TOKEN }}     # comes from the Claude GitHub App
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
