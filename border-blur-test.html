@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Border Blur Animation Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            gap: 30px;
+        }
+        
+        .card {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .card p {
+            color: #888;
+            text-align: center;
+        }
+        
+        /* Animated border blur effect */
+        .shape-blur {
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .shape-blur::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            animation: rotate 3s linear infinite;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .card:hover .shape-blur {
+            opacity: 1;
+        }
+        
+        .card:hover .shape-blur::before {
+            opacity: 1;
+        }
+        
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .shape-blur::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            background: #1a1a1a;
+            border-radius: 18px;
+            z-index: 1;
+        }
+        
+        /* Different colors for each card */
+        .card:nth-child(1) .shape-blur::before {
+            background: conic-gradient(
+                from 180deg at 50% 50%,
+                #3b82f6 0deg,
+                transparent 60deg,
+                transparent 300deg,
+                #3b82f6 360deg
+            );
+            filter: blur(20px);
+        }
+        
+        .card:nth-child(2) .shape-blur::before {
+            background: conic-gradient(
+                from 180deg at 50% 50%,
+                #ff6b35 0deg,
+                transparent 60deg,
+                transparent 300deg,
+                #ff6b35 360deg
+            );
+            filter: blur(20px);
+        }
+        
+        .card:nth-child(3) .shape-blur::before {
+            background: conic-gradient(
+                from 180deg at 50% 50%,
+                #ffd700 0deg,
+                transparent 60deg,
+                transparent 300deg,
+                #ffd700 360deg
+            );
+            filter: blur(20px);
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>Build</h3>
+        <p>Hover to see blue border blur</p>
+        <div class="shape-blur"></div>
+    </div>
+    
+    <div class="card">
+        <h3>Integrate</h3>
+        <p>Hover to see orange border blur</p>
+        <div class="shape-blur"></div>
+    </div>
+    
+    <div class="card">
+        <h3>Tune</h3>
+        <p>Hover to see gold border blur</p>
+        <div class="shape-blur"></div>
+    </div>
+</body>
+</html>

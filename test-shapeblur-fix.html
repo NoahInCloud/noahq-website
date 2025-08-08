@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShapeBlur Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .process-stepper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 50px 0;
+            gap: 40px;
+        }
+        
+        .process-step {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            width: 300px;
+            height: 250px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .process-step:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 107, 53, 0.6);
+            box-shadow: 0 12px 32px rgba(255, 107, 53, 0.15);
+        }
+        
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #ff8757);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .step-content {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .step-description {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .step-connector {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #333 0%, #ff6b35 50%, #333 100%);
+            position: relative;
+            margin: 0 -20px;
+        }
+        
+        .step-connector::after {
+            content: '→';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b35;
+            font-size: 1.25rem;
+            font-weight: bold;
+            background: #0a0a0a;
+            padding: 0 8px;
+        }
+        
+        .debug-info {
+            background: #222;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ShapeBlur Fix Test</h1>
+    <p>Hover over the process steps to see the fixed WebGL blur effect. The white borders should now be replaced with proper animated blur effects.</p>
+    
+    <div class="debug-info" id="debug-info">Loading debug information...</div>
+    
+    <div class="process-stepper">
+        <div class="process-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3 class="step-title">Build</h3>
+                <p class="step-description">Spin up your AI agent in a safe staging environment—test every scenario before launch.</p>
+            </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="process-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3 class="step-title">Integrate</h3>
+                <p class="step-description">Plug into your APIs, databases and messaging queues—run end-to-end integration tests.</p>
+            </div>
+        </div>
+        <div class="step-connector"></div>
+        <div class="process-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3 class="step-title">Tune</h3>
+                <p class="step-description">Refine prompts, retrain models, and set up continuous monitoring and support.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three.js for WebGL ShapeBlur effects -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+    <script src="assets/js/shapeblur-vanilla.js"></script>
+    
+    <script>
+        const debugInfo = document.getElementById('debug-info');
+        
+        function updateDebugInfo(message) {
+            debugInfo.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        // Override console.log for this test page
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            updateDebugInfo('[LOG] ' + args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            updateDebugInfo('[ERROR] ' + args.join(' '));
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            updateDebugInfo('[WARN] ' + args.join(' '));
+            originalWarn.apply(console, args);
+        };
+        
+        window.addEventListener('load', () => {
+            updateDebugInfo('Page loaded, initializing tests...');
+            
+            // Test WebGL support
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    updateDebugInfo('✓ WebGL support confirmed');
+                } else {
+                    updateDebugInfo('✗ WebGL not supported');
+                }
+            } catch (e) {
+                updateDebugInfo('✗ WebGL test failed: ' + e.message);
+            }
+            
+            // Test Three.js
+            if (typeof THREE !== 'undefined') {
+                updateDebugInfo('✓ Three.js loaded (version ' + THREE.REVISION + ')');
+            } else {
+                updateDebugInfo('✗ Three.js not loaded');
+            }
+            
+            // Test ShapeBlur class
+            if (typeof ShapeBlur !== 'undefined') {
+                updateDebugInfo('✓ ShapeBlur class available');
+            } else {
+                updateDebugInfo('✗ ShapeBlur class not found');
+            }
+        });
+        
+        // Monitor for shader errors
+        window.addEventListener('error', (event) => {
+            updateDebugInfo('[GLOBAL ERROR] ' + event.error.message);
+        });
+    </script>
+</body>
+</html>

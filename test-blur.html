@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShapeBlur Test</title>
+    <style>
+        body {
+            background: #000;
+            padding: 50px;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .test-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        
+        .test-card {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            color: white;
+            overflow: visible;
+            cursor: pointer;
+        }
+        
+        .shape-blur {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            filter: blur(60px);
+            z-index: -1;
+            top: 0;
+            left: 0;
+            will-change: transform, opacity;
+        }
+        
+        .test-card:nth-child(1) .shape-blur {
+            background: radial-gradient(circle, 
+                rgba(59, 130, 246, 1) 0%, 
+                rgba(59, 130, 246, 0.5) 40%, 
+                transparent 100%);
+        }
+        
+        .test-card:nth-child(2) .shape-blur {
+            background: radial-gradient(circle, 
+                rgba(255, 107, 53, 1) 0%, 
+                rgba(255, 107, 53, 0.5) 40%, 
+                transparent 100%);
+        }
+        
+        .test-card:nth-child(3) .shape-blur {
+            background: radial-gradient(circle, 
+                rgba(255, 215, 0, 1) 0%, 
+                rgba(255, 215, 0, 0.5) 40%, 
+                transparent 100%);
+        }
+        
+        h2 {
+            color: white;
+            text-align: center;
+        }
+        
+        .status {
+            color: #0f0;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>ShapeBlur Animation Test</h2>
+    <p class="status">Hover over the cards to see the blur effect follow your mouse</p>
+    
+    <div class="test-container">
+        <div class="test-card">
+            <h3>Blue Blur</h3>
+            <p>Move your mouse around this card</p>
+        </div>
+        <div class="test-card">
+            <h3>Orange Blur</h3>
+            <p>Move your mouse around this card</p>
+        </div>
+        <div class="test-card">
+            <h3>Gold Blur</h3>
+            <p>Move your mouse around this card</p>
+        </div>
+    </div>
+    
+    <script>
+        // ShapeBlur Effect
+        class ShapeBlur {
+            constructor(element) {
+                this.element = element;
+                this.blurElement = null;
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.currentX = 0;
+                this.currentY = 0;
+                this.isAnimating = false;
+                
+                this.init();
+            }
+            
+            init() {
+                // Create blur element
+                this.blurElement = document.createElement('div');
+                this.blurElement.className = 'shape-blur';
+                this.element.appendChild(this.blurElement);
+                
+                // Set initial position to center
+                const rect = this.element.getBoundingClientRect();
+                const centerX = rect.width / 2 - 100;
+                const centerY = rect.height / 2 - 100;
+                this.currentX = centerX;
+                this.currentY = centerY;
+                this.mouseX = centerX;
+                this.mouseY = centerY;
+                this.blurElement.style.transform = `translate(${centerX}px, ${centerY}px)`;
+                
+                // Bind events
+                this.element.addEventListener('mouseenter', this.onMouseEnter.bind(this));
+                this.element.addEventListener('mouseleave', this.onMouseLeave.bind(this));
+                this.element.addEventListener('mousemove', this.onMouseMove.bind(this));
+                
+                console.log('ShapeBlur initialized for', this.element);
+            }
+            
+            onMouseEnter() {
+                console.log('Mouse entered');
+                this.isAnimating = true;
+                this.blurElement.style.opacity = '0.6';
+                this.animate();
+                document.querySelector('.status').textContent = 'Mouse entered - animation active';
+            }
+            
+            onMouseLeave() {
+                console.log('Mouse left');
+                this.isAnimating = false;
+                this.blurElement.style.opacity = '0';
+                
+                // Return to center
+                const rect = this.element.getBoundingClientRect();
+                const centerX = rect.width / 2 - 100;
+                const centerY = rect.height / 2 - 100;
+                this.mouseX = centerX;
+                this.mouseY = centerY;
+                
+                document.querySelector('.status').textContent = 'Mouse left - animation stopped';
+            }
+            
+            onMouseMove(e) {
+                const rect = this.element.getBoundingClientRect();
+                this.mouseX = e.clientX - rect.left - 100;
+                this.mouseY = e.clientY - rect.top - 100;
+            }
+            
+            animate() {
+                if (!this.isAnimating) return;
+                
+                // Smooth interpolation
+                this.currentX += (this.mouseX - this.currentX) * 0.15;
+                this.currentY += (this.mouseY - this.currentY) * 0.15;
+                
+                // Apply transform
+                this.blurElement.style.transform = `translate(${this.currentX}px, ${this.currentY}px)`;
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.test-card');
+            cards.forEach(card => {
+                new ShapeBlur(card);
+            });
+            console.log('ShapeBlur initialized for', cards.length, 'cards');
+        });
+    </script>
+</body>
+</html>

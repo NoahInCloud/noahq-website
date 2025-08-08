@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShapeBlur Debug Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            width: 300px;
+            height: 200px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            position: relative;
+            margin: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .process-step {
+            width: 300px;
+            height: 200px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            position: relative;
+            margin: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        #debug-log {
+            background: #333;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ShapeBlur Debug Test</h1>
+    
+    <div id="debug-log">Initializing debug tests...\n</div>
+    
+    <h2>WebGL Support Test</h2>
+    <div id="webgl-support"></div>
+    
+    <h2>Three.js Loading Test</h2>
+    <div id="threejs-status"></div>
+    
+    <h2>Manual Canvas Test</h2>
+    <div class="test-container" id="manual-test">
+        Manual WebGL Test Container
+    </div>
+    
+    <h2>Process Step Simulation</h2>
+    <div class="process-step" id="process-step-test">
+        <div class="step-number">1</div>
+        <h3>Test Step</h3>
+        <p>Hover to test ShapeBlur</p>
+    </div>
+    
+    <!-- Three.js for WebGL ShapeBlur effects -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+    <script>
+        const debugLog = document.getElementById('debug-log');
+        
+        function log(message) {
+            console.log(message);
+            debugLog.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+        
+        // Test 1: Check WebGL support
+        function testWebGLSupport() {
+            log('Testing WebGL support...');
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                
+                if (gl) {
+                    log('✓ WebGL is supported');
+                    log(`WebGL Version: ${gl.getParameter(gl.VERSION)}`);
+                    log(`Renderer: ${gl.getParameter(gl.RENDERER)}`);
+                    log(`Vendor: ${gl.getParameter(gl.VENDOR)}`);
+                    
+                    // Test shader compilation
+                    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+                    gl.shaderSource(vertexShader, `
+                        attribute vec4 position;
+                        void main() {
+                            gl_Position = position;
+                        }
+                    `);
+                    gl.compileShader(vertexShader);
+                    
+                    if (gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                        log('✓ Basic shader compilation works');
+                    } else {
+                        log('✗ Shader compilation failed: ' + gl.getShaderInfoLog(vertexShader));
+                    }
+                    
+                    document.getElementById('webgl-support').innerHTML = '<div style="color: green;">✓ WebGL Supported</div>';
+                    return true;
+                } else {
+                    log('✗ WebGL is not supported');
+                    document.getElementById('webgl-support').innerHTML = '<div style="color: red;">✗ WebGL Not Supported</div>';
+                    return false;
+                }
+            } catch (error) {
+                log('✗ WebGL test failed: ' + error.message);
+                document.getElementById('webgl-support').innerHTML = '<div style="color: red;">✗ WebGL Error: ' + error.message + '</div>';
+                return false;
+            }
+        }
+        
+        // Test 2: Check Three.js loading
+        function testThreeJSLoading() {
+            log('Testing Three.js loading...');
+            
+            if (typeof THREE !== 'undefined') {
+                log('✓ Three.js loaded successfully');
+                log(`Three.js Version: ${THREE.REVISION}`);
+                
+                try {
+                    // Test basic Three.js objects
+                    const scene = new THREE.Scene();
+                    const camera = new THREE.OrthographicCamera();
+                    const renderer = new THREE.WebGLRenderer({ alpha: true });
+                    
+                    log('✓ Basic Three.js objects created successfully');
+                    
+                    // Test vector creation
+                    const vector = new THREE.Vector2(0, 0);
+                    log('✓ Three.js Vector2 works');
+                    
+                    document.getElementById('threejs-status').innerHTML = '<div style="color: green;">✓ Three.js Loaded & Working</div>';
+                    
+                    // Clean up
+                    renderer.dispose();
+                    
+                    return true;
+                } catch (error) {
+                    log('✗ Three.js object creation failed: ' + error.message);
+                    document.getElementById('threejs-status').innerHTML = '<div style="color: red;">✗ Three.js Error: ' + error.message + '</div>';
+                    return false;
+                }
+            } else {
+                log('✗ Three.js not loaded');
+                document.getElementById('threejs-status').innerHTML = '<div style="color: red;">✗ Three.js Not Loaded</div>';
+                return false;
+            }
+        }
+        
+        // Test 3: Manual WebGL canvas creation
+        function testManualWebGL() {
+            log('Testing manual WebGL canvas creation...');
+            
+            try {
+                const container = document.getElementById('manual-test');
+                const canvas = document.createElement('canvas');
+                canvas.width = 300;
+                canvas.height = 200;
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                canvas.style.pointerEvents = 'none';
+                container.appendChild(canvas);
+                
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                
+                if (gl) {
+                    // Set clear color to semi-transparent white
+                    gl.clearColor(1.0, 1.0, 1.0, 0.3);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+                    log('✓ Manual WebGL canvas created and cleared');
+                } else {
+                    log('✗ Could not get WebGL context for manual canvas');
+                }
+            } catch (error) {
+                log('✗ Manual WebGL test failed: ' + error.message);
+            }
+        }
+        
+        // Test 4: ShapeBlur initialization simulation
+        function testShapeBlurInit() {
+            log('Testing ShapeBlur initialization...');
+            
+            const container = document.getElementById('process-step-test');
+            
+            try {
+                if (typeof THREE === 'undefined') {
+                    log('✗ Cannot test ShapeBlur - Three.js not loaded');
+                    return;
+                }
+                
+                // Simulate ShapeBlur creation
+                const scene = new THREE.Scene();
+                const camera = new THREE.OrthographicCamera();
+                const renderer = new THREE.WebGLRenderer({ alpha: true });
+                
+                renderer.setClearColor(0x000000, 0);
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                
+                // Create container div
+                const shapeBlurContainer = document.createElement('div');
+                shapeBlurContainer.className = 'shape-blur-container';
+                shapeBlurContainer.style.position = 'absolute';
+                shapeBlurContainer.style.top = '0';
+                shapeBlurContainer.style.left = '0';
+                shapeBlurContainer.style.width = '100%';
+                shapeBlurContainer.style.height = '100%';
+                shapeBlurContainer.style.pointerEvents = 'none';
+                shapeBlurContainer.style.zIndex = '1';
+                shapeBlurContainer.style.opacity = '1'; // Make visible for testing
+                shapeBlurContainer.style.border = '2px solid red'; // Debug border
+                
+                shapeBlurContainer.appendChild(renderer.domElement);
+                container.appendChild(shapeBlurContainer);
+                
+                // Test render
+                renderer.render(scene, camera);
+                log('✓ ShapeBlur container and renderer created');
+                
+                // Add some visual feedback
+                renderer.domElement.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                
+            } catch (error) {
+                log('✗ ShapeBlur initialization failed: ' + error.message);
+            }
+        }
+        
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            log('Page loaded, starting tests...');
+            
+            // Run tests in sequence
+            setTimeout(() => testWebGLSupport(), 100);
+            setTimeout(() => testThreeJSLoading(), 500);
+            setTimeout(() => testManualWebGL(), 1000);
+            setTimeout(() => testShapeBlurInit(), 1500);
+        });
+        
+        // Catch any global errors
+        window.addEventListener('error', (event) => {
+            log('Global Error: ' + event.error.message + ' at ' + event.filename + ':' + event.lineno);
+        });
+        
+    </script>
+</body>
+</html>

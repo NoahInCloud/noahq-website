@@ -98,29 +98,46 @@ void main() {
     float circleSize = u_circleSize;
     float circleEdge = u_circleEdge;
 
-    float sdfCircle = fill(
-        sdCircle(st, posMouse),
-        circleSize,
-        circleEdge
-    );
-
+    // Mouse distance for blur effect
+    float mouseDist = length(st - posMouse);
+    float mouseInfluence = smoothstep(0.0, circleSize, mouseDist);
+    
+    // Create blur falloff based on mouse distance
+    float blurRadius = mix(0.3, 0.05, mouseInfluence);
+    
     float sdf;
     if (VAR == 0) {
+        // Rounded rectangle with animated blur
         sdf = sdRoundRect(st, vec2(size), roundness);
-        sdf = strokeAA(sdf, 0.0, borderSize, sdfCircle) * 4.0;
+        sdf = smoothstep(blurRadius + 0.02, blurRadius, abs(sdf));
+        
+        // Add mouse-following glow
+        float glow = 1.0 - smoothstep(0.0, circleSize * 2.0, mouseDist);
+        sdf = max(sdf, glow * 0.3);
+        
     } else if (VAR == 1) {
+        // Filled circle with blur
         sdf = sdCircle(st, vec2(0.5));
-        sdf = fill(sdf, 0.6, sdfCircle) * 1.2;
+        sdf = smoothstep(0.7 + blurRadius, 0.7 - blurRadius, sdf);
+        
     } else if (VAR == 2) {
-        sdf = sdCircle(st, vec2(0.5));
-        sdf = strokeAA(sdf, 0.58, 0.02, sdfCircle) * 4.0;
+        // Circle stroke with blur
+        sdf = abs(sdCircle(st, vec2(0.5)) - 0.58);
+        sdf = smoothstep(0.02 + blurRadius, 0.02 - blurRadius, sdf);
+        
     } else if (VAR == 3) {
+        // Triangle with blur
         sdf = sdPoly(st - vec2(0.5, 0.45), 0.3, 3);
-        sdf = fill(sdf, 0.05, sdfCircle) * 1.4;
+        sdf = smoothstep(0.05 + blurRadius, 0.05 - blurRadius, sdf);
     }
 
+    // Create color with alpha blend
     vec3 color = vec3(1.0);
-    float alpha = sdf;
+    float alpha = clamp(sdf, 0.0, 1.0);
+    
+    // Smooth falloff at edges to prevent hard borders
+    alpha *= smoothstep(0.0, 0.02, alpha);
+    
     gl_FragColor = vec4(color.rgb, alpha);
 }
 `;
@@ -131,11 +148,11 @@ class ShapeBlur {
         this.options = {
             variation: options.variation || 0,
             pixelRatio: options.pixelRatio || 2,
-            shapeSize: options.shapeSize || 1.2,
-            roundness: options.roundness || 0.4,
-            borderSize: options.borderSize || 0.05,
-            circleSize: options.circleSize || 0.3,
-            circleEdge: options.circleEdge || 0.5,
+            shapeSize: options.shapeSize || 1.8,
+            roundness: options.roundness || 0.12,
+            borderSize: options.borderSize || 0.02,
+            circleSize: options.circleSize || 0.6,
+            circleEdge: options.circleEdge || 0.9,
             color: options.color || '#ffffff'
         };
         
@@ -152,9 +169,11 @@ class ShapeBlur {
         this.container.style.width = '100%';
         this.container.style.height = '100%';
         this.container.style.pointerEvents = 'none';
-        this.container.style.zIndex = '0';
+        this.container.style.zIndex = '1';
         this.container.style.opacity = '0';
         this.container.style.transition = 'opacity 0.3s ease';
+        this.container.style.borderRadius = 'inherit';
+        this.container.style.overflow = 'hidden';
         this.element.appendChild(this.container);
         
         // Initialize Three.js
@@ -181,9 +200,19 @@ class ShapeBlur {
         this.camera.position.z = 1;
         
         // Renderer setup
-        this.renderer = new THREE.WebGLRenderer({ alpha: true });
+        this.renderer = new THREE.WebGLRenderer({ 
+            alpha: true,
+            antialias: true,
+            preserveDrawingBuffer: false
+        });
         this.renderer.setClearColor(0x000000, 0);
         this.container.appendChild(this.renderer.domElement);
+        
+        // Debug: Check WebGL context
+        if (!this.renderer.getContext()) {
+            console.warn('ShapeBlur: Failed to get WebGL context');
+            return;
+        }
         
         // Geometry and material
         const geo = new THREE.PlaneGeometry(1, 1);
@@ -217,7 +246,7 @@ class ShapeBlur {
     
     setColor(color) {
         // Apply color filter to the canvas
-        this.renderer.domElement.style.filter = `drop-shadow(0 0 20px ${color})`;
+        this.renderer.domElement.style.filter = `drop-shadow(0 0 20px ${color}) drop-shadow(0 0 40px ${color})`;
         this.renderer.domElement.style.mixBlendMode = 'screen';
     }
     
@@ -230,7 +259,7 @@ class ShapeBlur {
         
         // Mouse enter/leave handlers
         this.onMouseEnter = () => {
-            this.container.style.opacity = '0.6';
+            this.container.style.opacity = '0.9';  // More visible effect
         };
         
         this.onMouseLeave = () => {
@@ -338,36 +367,48 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeShapeBlurs() {
-    const processSteps = document.querySelectorAll('.process-step');
-    
-    if (processSteps.length === 0) {
-        console.log('ShapeBlur: No process steps found');
-        return;
-    }
-    
-    console.log('ShapeBlur: Initializing for', processSteps.length, 'process steps');
-    
-    // Define colors and variations for each step
-    const configs = [
-        { color: '#3b82f6', variation: 0 }, // Blue for Build - rounded rect border
-        { color: '#ff6b35', variation: 0 }, // Orange for Integrate - rounded rect border
-        { color: '#ffd700', variation: 0 }  // Gold for Tune - rounded rect border
-    ];
-    
-    processSteps.forEach((step, index) => {
-        const config = configs[index % configs.length];
-        new ShapeBlur(step, {
-            variation: config.variation,
-            color: config.color,
-            pixelRatio: 2,
-            shapeSize: 1.2,
-            roundness: 0.4,
-            borderSize: 0.05,
-            circleSize: 0.3,
-            circleEdge: 0.5
+    // Wait a bit for DOM to be fully ready
+    setTimeout(() => {
+        const processSteps = document.querySelectorAll('.process-step');
+        
+        if (processSteps.length === 0) {
+            console.log('ShapeBlur: No process steps found');
+            return;
+        }
+        
+        console.log('ShapeBlur: Initializing for', processSteps.length, 'process steps');
+        
+        // Define colors and variations for each step - matching brand colors
+        const configs = [
+            { color: '#ff6b35', variation: 0 }, // Orange for Build - matches CSS
+            { color: '#f7931e', variation: 0 }, // Orange-yellow for Integrate - matches CSS  
+            { color: '#ffd700', variation: 0 }  // Gold for Tune - matches CSS
+        ];
+        
+        processSteps.forEach((step, index) => {
+            // Make sure the step has proper positioning
+            if (!step.style.position) {
+                step.style.position = 'relative';
+            }
+            
+            const config = configs[index % configs.length];
+            try {
+                new ShapeBlur(step, {
+                    variation: config.variation,
+                    color: config.color,
+                    pixelRatio: Math.min(window.devicePixelRatio, 2),
+                    shapeSize: 1.8,      // Adjusted for better shape
+                    roundness: 0.12,     // Better rounded corners
+                    borderSize: 0.02,    // Slightly thicker for visibility
+                    circleSize: 0.6,     // Larger mouse influence area
+                    circleEdge: 0.9      // Smoother edge transition
+                });
+                console.log(`ShapeBlur: Initialized for step ${index + 1} with color ${config.color}`);
+            } catch (error) {
+                console.error(`ShapeBlur: Failed to initialize step ${index + 1}:`, error);
+            }
         });
-        console.log(`ShapeBlur: Initialized for step ${index + 1} with color ${config.color}`);
-    });
+    }, 100);
 }
 
 // Export for manual initialization if needed
