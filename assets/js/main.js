@@ -368,3 +368,5 @@ document.querySelectorAll('.solution-cta').forEach(button => {
         window.open('mailto:hello@noahq.ai', '_blank');
     });
 });
+
+// ShapeBlur is now handled by shapeblur-vanilla.js with Three.js WebGL implementation
